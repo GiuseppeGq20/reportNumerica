@@ -1,4 +1,8 @@
 clear all; close all; clc;
+
+%TODO
+% - check correctness of fluid flow field
+
 % Esercitazione dal corso di Fluidodinamica Numerica
 % 22 novembre 2021
 % Prof. G. Coppola
@@ -50,7 +54,7 @@ hx = x(2) - x(1);                    % Passo spaziale lungo x
 hy = y(2) - y(1);                    % Passo spaziale lungo y
 h  = hx;           hq = h*h;        
 Re = 2000;                           % Numero di Reynolds
-T  = 30;                             % Tempo finale della simulazione
+T  = 60;                             % Tempo finale della simulazione
 % Preallocazione delle variabili. 
 % Le variabili U e V sono preallocate in array che contengono anche le
 % variabili di bordo che cadono sul boundary. Per la variabile P si
@@ -88,10 +92,10 @@ G   = numgrid('S',Nx);     Lapg = -delsq(G);     Lapg = Lapg/hq;
 
 
 % condizione iniziale particle tracking
-xp=0.9*Lx;
-yp=0.5*Ly;
-Np=1;
-%[xp,yp]=initialPoints(Np,Lx,Ly,"centreNormal");
+% xp=0.9*Lx;
+% yp=0.5*Ly;
+Np=5;
+[xp,yp]=initialPoints(Np,Lx,Ly,"yline",0.5);
 
 Xp=nan(Nt,Np);
 Yp=nan(Nt,Np);
@@ -185,17 +189,17 @@ for it = 1:Nt
         %pcolor(X(1:end-1,1:end-1)+h/2,Y(1:end-1,1:end-1)+h/2,P); shading interp 
 %        colormap jet;
         % velocity magnitude interior cell points
-        pcolor(Y(1:end-1,1:end-1)+h/2,X(1:end-1,1:end-1)+h/2, ...
-            Iu(1:end-1,1:end-1).^2 + Iv(1:end-1,1:end-1).^2);
-        colormap jet; 
+        pcolor(X(1:end-1,1:end-1)+h/2,Y(1:end-1,1:end-1)+h/2, ...
+            (Iu(1:end-1,1:end-1).^2 + Iv(1:end-1,1:end-1).^2)');
+        colormap jet;
         colorbar;
         hold on
         %path lines
         for i=1:Np
             plot(Xp(:,i),Yp(:,i),"-","LineWidth",2);
             hold on; 
-            plot(Xp(end,i),Yp(end,i),"o","MarkerSize",10,"MarkerFaceColor","auto"); %plot current position
-            hold on
+            % plot(xp(i),yp(i),"o","MarkerSize",8); %plot current position
+            % hold on
         end
         %stream lines
         l=streamslice(X,Y,Iu',Iv');     
@@ -220,15 +224,27 @@ end
 
 %plot velocities and position of p
 figure(3)
-subplot(2,1,1);
-plot(time,Xp,time,Yp);
+subplot(2,2,1);
+plot(time,Xp)
+subtitle("p y positon"); xlabel("t [s]");
+subplot(2,2,2)
+plot(time,Yp);
 %legend(["x","y"]);
-subtitle("p positon"); xlabel("t [s]");
-subplot(2,1,2);
-plot(time,Up,time,Vp); 
+subtitle("p y positon"); xlabel("t [s]");
+subplot(2,2,3);
+plot(time,Up)
+subtitle("p u velocity"); xlabel("t [s]");
+subplot(2,2,4)
+plot(time,Vp); 
 %legend(["u","v"]);
-subtitle("p velocity"); xlabel("t [s]");
+subtitle("p v velocity"); xlabel("t [s]");
 
-    
-    
+% plot of complete lagrangian trajectory
+figure(4)
+for i=1:Np
+    plot(Xp(:,i),Yp(:,i),"-","LineWidth",2);
+    hold on; 
+end
+ylim([0,Ly]);xlim([0,Lx]); axis square
+hold off    
 
