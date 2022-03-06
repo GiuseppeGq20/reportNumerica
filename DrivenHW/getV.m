@@ -14,15 +14,14 @@ global x y h UNord VNord
 u=interp2(x,y(1:end-1)+h/2,U',xp,yp,"linear");
 v=interp2(x(1:end-1)+h/2,y,V',xp,yp,"linear");
 
-%
+
 
 %wall collision detection
-
 for i=1:length(xp)
-    % for Harlow welch u grid
+    
+    % Harlow welch u component
     if (xp(i) > x(end))|| (xp(i) < x(1)) || (yp(i) < y(1)+h/2)
         u(i)=0;
-
     end
 
     %top boundary condition

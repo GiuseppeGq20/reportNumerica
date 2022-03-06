@@ -53,8 +53,8 @@ y  = linspace(0,Ly,Ny);              % Mesh (uniforme) lungo y
 hx = x(2) - x(1);                    % Passo spaziale lungo x
 hy = y(2) - y(1);                    % Passo spaziale lungo y
 h  = hx;           hq = h*h;        
-Re = 2000;                           % Numero di Reynolds
-T  = 60;                             % Tempo finale della simulazione
+Re = 1e6;                           % Numero di Reynolds
+T  = 30;                             % Tempo finale della simulazione
 % Preallocazione delle variabili. 
 % Le variabili U e V sono preallocate in array che contengono anche le
 % variabili di bordo che cadono sul boundary. Per la variabile P si
@@ -164,19 +164,17 @@ for it = 1:Nt
     xp= xp + Dt*((1/6)*(up1 + up4) + (1/3)*(up2 + up3));
     yp= yp + Dt*((1/6)*(vp1 + vp4) + (1/3)*(vp2 + vp3));
 
-
     %store u and v velocities
     [Up(it,:),Vp(it,:)]=getV(U,V,xp,yp);
+
 %%%%%%%%%%%%%%%%
-
-
 % Output
      if mod(it,40) == 0
          t = it*Dt;
      %Verifica sulla divergenza alla fine dello step
          MaxDiv = max(max(abs(DivCalc(U,V))));
          disp(['Massima divergenza sul campo = ',num2str(MaxDiv)])
-% Interpolazione ai centri cella della velocità
+% Interpolazione ai nodi
         i = 1:Nx;     j = 2:Ny-1;   Iu(i,j)  = (U(i,j) + U(i,j-1))/2; 
         Iu(i,1) = USud;             Iu(i,Ny) = UNord;
         i = 2:Nx-1;   j = 1:Ny;     Iv(i,j)  = (V(i,j) + V(i-1,j))/2; 
@@ -186,14 +184,15 @@ for it = 1:Nt
 % Grafica
         figure(1); clf; 
         %pressure
-        %pcolor(X(1:end-1,1:end-1)+h/2,Y(1:end-1,1:end-1)+h/2,P); shading interp 
-%        colormap jet;
-        % velocity magnitude interior cell points
-        pcolor(X(1:end-1,1:end-1)+h/2,Y(1:end-1,1:end-1)+h/2, ...
-            (Iu(1:end-1,1:end-1).^2 + Iv(1:end-1,1:end-1).^2)');
+        % pcolor(X(1:end-1,1:end-1)+h/2,Y(1:end-1,1:end-1)+h/2,P); shading interp 
+        % colormap jet;
+        
+        %velocity magnitude node points
+        pcolor(X,Y,sqrt(Iu.^2 + Iv.^2)');
         colormap jet;
-        colorbar;
+        colorbar; caxis([0,1])
         hold on
+
         %path lines
         for i=1:Np
             plot(Xp(:,i),Yp(:,i),"-","LineWidth",2);
@@ -202,7 +201,7 @@ for it = 1:Nt
             % hold on
         end
         %stream lines
-        l=streamslice(X,Y,Iu',Iv');     
+        l=streamslice(X,Y,Iu',Iv');
         set(l,'Color','w')
         axis([0 Lx 0 Ly ]);
         axis square;
@@ -219,7 +218,7 @@ for it = 1:Nt
 %         title({'Harlow-Welch. Driven cavity. Streamlines da \psi'})
 %         drawnow; hold off
      end
-%     
+    
 end
 
 %plot velocities and position of p
