@@ -1,4 +1,4 @@
-clear all; close all; clc;
+clear; close all; clc;
 
 %TODO
 % - check correctness of fluid flow field
@@ -47,13 +47,13 @@ global UNord USud UWest UEst VNord VSud VWest VEst
 global x y
 warning off
 Lx = 1;    Ly = 1;                   % Dimensioni del dominio
-Nx = 60;   Ny = 60;   N = Nx;        % Numero di nodi lungo ogni lato
+Nx = 130;   Ny = 130;   N = Nx;        % Numero di nodi lungo ogni lato
 x  = linspace(0,Lx,Nx);              % Mesh (uniforme) lungo x
 y  = linspace(0,Ly,Ny);              % Mesh (uniforme) lungo y
 hx = x(2) - x(1);                    % Passo spaziale lungo x
 hy = y(2) - y(1);                    % Passo spaziale lungo y
 h  = hx;           hq = h*h;        
-Re = 1e6;                           % Numero di Reynolds
+Re = 1000;                           % Numero di Reynolds
 T  = 30;                             % Tempo finale della simulazione
 % Preallocazione delle variabili. 
 % Le variabili U e V sono preallocate in array che contengono anche le
@@ -107,6 +107,10 @@ for it = 1:Nt
 
     Xp(it,:)=xp;
     Yp(it,:)=yp;
+
+    % set lid boundary velocity
+     UNord=setLidVelocity(Dt*it,0.05);
+
 %%%%%%%%%%%%%%%%
 % fractional step approach: pressure is accurate at first order
 % STAGE 1 
