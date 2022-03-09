@@ -2,11 +2,13 @@
 *.jpg
 *.png
 *.pdf
+*.mat
+*.csv
 
 log
 
 # openfoam setup
 */cavity/*
-!foam/cavity/0/
+!foam/cavity/0/*
 !foam/cavity/system/
-!foam/cavity/constant/
+!foam/cavity/constant/transportProperties

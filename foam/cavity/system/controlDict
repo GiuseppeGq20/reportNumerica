@@ -24,15 +24,15 @@ stopAt          endTime;
 
 endTime         30;
 
-deltaT          0.002;
+deltaT          0.005;
 
-writeControl    timeStep;
+writeControl    runTime;
 
-writeInterval   250;
+writeInterval   0.2;
 
 purgeWrite      0;
 
-writeFormat     ascii;
+writeFormat     binary;
 
 writePrecision  6;
 
@@ -42,7 +42,7 @@ timeFormat      general;
 
 timePrecision   6;
 
-runTimeModifiable true;
+runTimeModifiable false;
 
 
 // ************************************************************************* //
