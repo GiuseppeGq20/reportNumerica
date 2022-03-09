@@ -45,9 +45,13 @@ clear; close all; clc;
 global Nx Ny Re h hq Lapg            % Dichiarazione globale delle varabili
 global UNord USud UWest UEst VNord VSud VWest VEst
 global x y
+
+%data matfile filename
+filename="dataN60.mat";
+
 warning off
 Lx = 1;    Ly = 1;                   % Dimensioni del dominio
-Nx = 130;   Ny = 130;   N = Nx;        % Numero di nodi lungo ogni lato
+Nx = 60;   Ny = 60;   N = Nx;        % Numero di nodi lungo ogni lato
 x  = linspace(0,Lx,Nx);              % Mesh (uniforme) lungo x
 y  = linspace(0,Ly,Ny);              % Mesh (uniforme) lungo y
 hx = x(2) - x(1);                    % Passo spaziale lungo x
@@ -61,9 +65,13 @@ T  = 30;                             % Tempo finale della simulazione
 % considerano invece solo i valori interni al dominio.
 % La istruzione di preallocazione introduce anche le condizioni iniziali.
 U  = zeros(Nx,Ny-1);     V = zeros(Nx-1,Ny);    P = zeros(Nx-1,Ny-1);
-% Condizioni al contorno (assunte costanti lungo ogni lato)
+
+% Condizioni al contorno
 UWest = 0; UEst = 0; VNord = 0; VSud = 0;
 UNord = 1; USud = 0; VWest = 0; VEst = 0;
+%Flag for periodic lid velocity
+UFLAG=1;
+
 Uref  = 1;                           % Velocità di riferimento
 C     = 1.2;       beta = 0.8;       % Parametri della discretizzazione numerica
 Dt    = min([C*h/Uref,beta*hq*Re]);  % Dt per la stabiità
@@ -92,8 +100,6 @@ G   = numgrid('S',Nx);     Lapg = -delsq(G);     Lapg = Lapg/hq;
 
 
 % condizione iniziale particle tracking
-% xp=0.9*Lx;
-% yp=0.5*Ly;
 Np=5;
 [xp,yp]=initialPoints(Np,Lx,Ly,"yline",0.5);
 
@@ -103,14 +109,42 @@ Up=nan(Nt,Np);
 Vp=nan(Nt,Np);
 % Avanzamento temporale
 time=linspace(0,T,Nt);
+
+
+% create mat file 
+matObj=matfile(filename,"Writable",true);
+
+matObj.time=time;
+matObj.Dt=Dt;
+matObj.x=x;
+matObj.y=y;
+matObj.Np=Np;
+%velocity variables
+matObj.U=zeros(Nx,Ny-1,Nt);
+matObj.V=zeros(Nx-1,Ny,Nt);
+%store Boundary conditions
+matObj.USud=USud; matObj.VSud=VSud;
+matObj.UEst=UEst; matObj.VEst=VEst;
+matObj.UWest=UWest; matObj.VWest=VWest;
+matObj.UNord=UNord; matObj.VNord=VNord;
+
+matObj.UFLAG=UFLAG;
+if UFLAG
+% set lid boundary velocity
+u_nord=setLidVelocity(time,0.05);
+matObj.u_nord=u_nord;
+end
+
+%Unsteady loop
 for it = 1:Nt
 
     Xp(it,:)=xp;
     Yp(it,:)=yp;
 
-    % set lid boundary velocity
-     UNord=setLidVelocity(Dt*it,0.05);
-
+    %update lid driven velocity
+    if UFLAG
+        UNord=u_nord(it);
+    end
 %%%%%%%%%%%%%%%%
 % fractional step approach: pressure is accurate at first order
 % STAGE 1 
@@ -171,83 +205,23 @@ for it = 1:Nt
     %store u and v velocities
     [Up(it,:),Vp(it,:)]=getV(U,V,xp,yp);
 
-%%%%%%%%%%%%%%%%
-% Output
-     if mod(it,40) == 0
-         t = it*Dt;
-     %Verifica sulla divergenza alla fine dello step
-         MaxDiv = max(max(abs(DivCalc(U,V))));
-         disp(['Massima divergenza sul campo = ',num2str(MaxDiv)])
-% Interpolazione ai nodi
-        i = 1:Nx;     j = 2:Ny-1;   Iu(i,j)  = (U(i,j) + U(i,j-1))/2; 
-        Iu(i,1) = USud;             Iu(i,Ny) = UNord;
-        i = 2:Nx-1;   j = 1:Ny;     Iv(i,j)  = (V(i,j) + V(i-1,j))/2; 
-        Iv(1,j) = VWest;            Iv(Nx,j) = VEst;
-% Mesh 2D
-        X = repmat(x,Ny,1);         Y = repmat(y',1,Nx);
-% Grafica
-        figure(1); clf; 
-        %pressure
-        % pcolor(X(1:end-1,1:end-1)+h/2,Y(1:end-1,1:end-1)+h/2,P); shading interp 
-        % colormap jet;
-        
-        %velocity magnitude node points
-        pcolor(X,Y,sqrt(Iu.^2 + Iv.^2)');
-        colormap jet;
-        colorbar; caxis([0,1])
-        hold on
+matObj.U(:,:,it)=U;
+matObj.V(:,:,it)=V;
 
-        %path lines
-        for i=1:Np
-            plot(Xp(:,i),Yp(:,i),"-","LineWidth",2);
-            hold on; 
-            % plot(xp(i),yp(i),"o","MarkerSize",8); %plot current position
-            % hold on
-        end
-        %stream lines
-        l=streamslice(X,Y,Iu',Iv');
-        set(l,'Color','w')
-        axis([0 Lx 0 Ly ]);
-        axis square;
-        title(['Harlow-Welch. Driven cavity. t = ',num2str(t)]);
-        hold off;
-        drawnow;
-
-%         figure(2); clf;
-%         PSI  = GivePsi(U,V);                 % Calcolo della Psi da U e V
-%         vneg = linspace(min(min(PSI)),0,10);
-%         vpos = linspace(0,max(max(PSI)),10);
-%         contour(x,y,PSI',vneg,'k'); axis square; hold on;
-%         contour(x,y,PSI',vpos,'r'); 
-%         title({'Harlow-Welch. Driven cavity. Streamlines da \psi'})
-%         drawnow; hold off
-     end
-    
+%check divergence
+if mod(it,100)==0
+     MaxDiv = max(max(abs(DivCalc(U,V))));
+     disp(['Time ',num2str(it*Dt)])
+     C=max(max(U,[],"all"),max(V,[],"all"))*Dt/h;
+     disp(['Max Courant ', num2str(C)])
+     disp(['Massima divergenza sul campo = ',num2str(MaxDiv)])
 end
 
-%plot velocities and position of p
-figure(3)
-subplot(2,2,1);
-plot(time,Xp)
-subtitle("p y positon"); xlabel("t [s]");
-subplot(2,2,2)
-plot(time,Yp);
-%legend(["x","y"]);
-subtitle("p y positon"); xlabel("t [s]");
-subplot(2,2,3);
-plot(time,Up)
-subtitle("p u velocity"); xlabel("t [s]");
-subplot(2,2,4)
-plot(time,Vp); 
-%legend(["u","v"]);
-subtitle("p v velocity"); xlabel("t [s]");
-
-% plot of complete lagrangian trajectory
-figure(4)
-for i=1:Np
-    plot(Xp(:,i),Yp(:,i),"-","LineWidth",2);
-    hold on; 
 end
-ylim([0,Ly]);xlim([0,Lx]); axis square
-hold off    
+
+%save Lagrangian trajectories and velocities
+matObj.Xp=Xp;
+matObj.Yp=Yp;
+matObj.Up=Up;
+matObj.Vp=Vp;
 

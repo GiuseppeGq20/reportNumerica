@@ -10,7 +10,7 @@ function [u,v]=getV(U,V,xp,yp)
 % v: v velocity vector of the particles
 
 global x y h UNord VNord
-
+%TODO modify interpolation scheme to include boundaries
 u=interp2(x,y(1:end-1)+h/2,U',xp,yp,"linear");
 v=interp2(x(1:end-1)+h/2,y,V',xp,yp,"linear");
 

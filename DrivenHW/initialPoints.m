@@ -1,6 +1,15 @@
 function [xp,yp]=initialPoints(Np,Lx,Ly,name,varargin)
-% function to set up different initial point distributions
-
+%INITIALPOINTS function to set up different initial point distributions
+%INPUTS:
+% Np: number of particles
+% Lx: length of the domanin in the x direction
+% Ly: length of the domanin in the y direction
+% name: initial condition considered
+% varargin{1}: x positon percentage
+% varargin{2}: y positon percentage
+%OUTPUT:
+% xp: x coordinates position of the particles
+% yp: y coordinates position of the particles
 
 switch name
 
