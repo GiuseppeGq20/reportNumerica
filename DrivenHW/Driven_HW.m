@@ -70,7 +70,7 @@ U  = zeros(Nx,Ny-1);     V = zeros(Nx-1,Ny);    P = zeros(Nx-1,Ny-1);
 UWest = 0; UEst = 0; VNord = 0; VSud = 0;
 UNord = 1; USud = 0; VWest = 0; VEst = 0;
 %Flag for periodic lid velocity
-UFLAG=1;
+UFLAG=0;
 
 Uref  = 1;                           % Velocità di riferimento
 C     = 1.2;       beta = 0.8;       % Parametri della discretizzazione numerica
@@ -101,6 +101,9 @@ G   = numgrid('S',Nx);     Lapg = -delsq(G);     Lapg = Lapg/hq;
 
 % condizione iniziale particle tracking
 Np=5;
+%flag for particle reinjection
+REINJECTION_FLAG=1;
+reIn_timeStep=500;
 [xp,yp]=initialPoints(Np,Lx,Ly,"yline",0.5);
 
 Xp=nan(Nt,Np);
@@ -119,6 +122,8 @@ matObj.Dt=Dt;
 matObj.x=x;
 matObj.y=y;
 matObj.Np=Np;
+matObj.REINJECTION_FLAG=REINJECTION_FLAG;
+matObj.reIn_timeStep=reIn_timeStep;
 %velocity variables
 matObj.U=zeros(Nx,Ny-1,Nt);
 matObj.V=zeros(Nx-1,Ny,Nt);
@@ -135,16 +140,23 @@ u_nord=setLidVelocity(time,0.05);
 matObj.u_nord=u_nord;
 end
 
+in_count=0;
 %Unsteady loop
 for it = 1:Nt
 
     Xp(it,:)=xp;
     Yp(it,:)=yp;
 
+    if REINJECTION_FLAG && mod(it,reIn_timeStep)==0
+        xp=Xp(1,:); yp=Yp(1,:);
+    end
     %update lid driven velocity
     if UFLAG
         UNord=u_nord(it);
     end
+    
+    %[~,VNord]=setLidVelocity(Dt*Nt,0.1,x,Lx);
+
 %%%%%%%%%%%%%%%%
 % fractional step approach: pressure is accurate at first order
 % STAGE 1 

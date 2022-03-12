@@ -4,11 +4,12 @@ clear;clc;close all;
 %data loading
 % load "data.mat" %for large matfiles this isn't optimal
 
-data=matfile("data.mat");
+data=matfile("dataN60.mat");
 Dt=data.Dt;
 time=data.time;
 x=data.x;
 y=data.y;
+h=x(2)-x(1);
 USud=data.USud; UNord=data.UNord; VSud=data.VSud; VNord=data.VNord;
 UEst=data.UEst; UWest=data.UWest; VEst=data.VEst; VWest=data.VWest;
 
@@ -21,11 +22,26 @@ Xp=data.Xp; Yp=data.Yp; Up=data.Yp; Vp=data.Vp;
 Nx=length(x);Ny=length(y);
 Lx=x(end);Ly=y(end);
 
+count=1;
+reIn_timeStep=data.reIn_timeStep;
+REINJECTION_FLAG=data.REINJECTION_FLAG;
 %Flow visualization
 for it=1:length(time)
-    
+
+    %reInjection 
+    if REINJECTION_FLAG && mod(it,reIn_timeStep)==0
+        count=count+reIn_timeStep;
+    end
+
 % Output
      if mod(it,30) == 0
+ 
+%check divergence
+     MaxDiv = max(max(abs(DivCalc(data.U(:,:,it),data.V(:,:,it)))));
+     disp(['Time ',num2str(it*Dt)])
+     C=max(max(data.U(:,:,it),[],"all"),max(data.V(:,:,it),[],"all"))*Dt/h;
+     disp(['Max Courant ', num2str(C)])
+     disp(['Massima divergenza sul campo = ',num2str(MaxDiv)])
 
          if UFLAG
              UNord=u_nord(it);
@@ -56,7 +72,7 @@ for it=1:length(time)
 
         %path lines
         for i=1:Np
-            plot(Xp(1:it,i),Yp(1:it,i),"-","LineWidth",2);
+            plot(Xp(count:it,i),Yp(count:it,i),"-","LineWidth",2);
             hold on; 
             % plot(xp(i),yp(i),"o","MarkerSize",8); %plot current position
             % hold on
