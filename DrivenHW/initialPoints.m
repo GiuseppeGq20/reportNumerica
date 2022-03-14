@@ -25,7 +25,7 @@ switch name
     case "centreNormal"
         xp=(0.5+0.1*rand(1,Np))*Lx;
         yp=(0.5+0.1*rand(1,Np))*Ly;
-    case "singleP"
+    case "single"
         xp=varargin{1}*Lx;
         yp=varargin{2}*Ly;
 end

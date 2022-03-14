@@ -4,6 +4,7 @@
 *.pdf
 *.mat
 *.csv
+*.DS_Store
 
 log
 

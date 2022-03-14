@@ -47,7 +47,7 @@ global UNord USud UWest UEst VNord VSud VWest VEst
 global x y
 
 %data matfile filename
-filename="dataN60.mat";
+filename="data/Re/dataN60Re1000.mat";
 
 warning off
 Lx = 1;    Ly = 1;                   % Dimensioni del dominio
@@ -75,6 +75,7 @@ UFLAG=0;
 Uref  = 1;                           % Velocità di riferimento
 C     = 1.2;       beta = 0.8;       % Parametri della discretizzazione numerica
 Dt    = min([C*h/Uref,beta*hq*Re]);  % Dt per la stabiità
+Dt=0.02;
 Nt    = round(T/Dt);                 % Numero di step temporali
 % Inserimento delle BCs negli array U e V. Questi valori di bordo non
 % saranno aggiornati durante la integrazione.
@@ -102,7 +103,7 @@ G   = numgrid('S',Nx);     Lapg = -delsq(G);     Lapg = Lapg/hq;
 % condizione iniziale particle tracking
 Np=5;
 %flag for particle reinjection
-REINJECTION_FLAG=1;
+REINJECTION_FLAG=0;
 reIn_timeStep=500;
 [xp,yp]=initialPoints(Np,Lx,Ly,"yline",0.5);
 
@@ -140,7 +141,6 @@ u_nord=setLidVelocity(time,0.05);
 matObj.u_nord=u_nord;
 end
 
-in_count=0;
 %Unsteady loop
 for it = 1:Nt
 
@@ -154,7 +154,7 @@ for it = 1:Nt
     if UFLAG
         UNord=u_nord(it);
     end
-    
+
     %[~,VNord]=setLidVelocity(Dt*Nt,0.1,x,Lx);
 
 %%%%%%%%%%%%%%%%

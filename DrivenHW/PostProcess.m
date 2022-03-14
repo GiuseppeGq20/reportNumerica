@@ -4,7 +4,7 @@ clear;clc;close all;
 %data loading
 % load "data.mat" %for large matfiles this isn't optimal
 
-data=matfile("dataN60.mat");
+data=matfile("data/Re/dataN60Re7500.mat");
 Dt=data.Dt;
 time=data.time;
 x=data.x;
