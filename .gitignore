@@ -14,3 +14,4 @@ log
 !foam/cavity/0/*
 !foam/cavity/system/
 !foam/cavity/constant/transportProperties
+!Residuals.m

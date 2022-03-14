@@ -1,8 +1,5 @@
 clear; close all; clc;
 
-%TODO
-% - check correctness of fluid flow field
-
 % Esercitazione dal corso di Fluidodinamica Numerica
 % 22 novembre 2021
 % Prof. G. Coppola
@@ -40,14 +37,24 @@ clear; close all; clc;
 % La integrazione temporale viene effettuata mediate il classico schema 
 % RK4, nel quale la proiezione del campo di velocità sul sottospazio a
 % divergenza nulla viene fatta ad ogni stage.
-% 
+%
+% I dati necessari per la visualizzazione del campo di moto sono salvati in
+% un matfile, il cui nome è impostato dalla variabile filename
+%
+% ulteriori settings
+% Uflag: variabile booleans per settare velocità lid variabile
+% Reinjection Flag: variabile booleana per settare un eventuale
+% "reiniezione" di particelle fluide da tracciare
+% Reinjection time step: ogni quanti timestep re inserire le particelle da
+% tracciare
+
 
 global Nx Ny Re h hq Lapg            % Dichiarazione globale delle varabili
 global UNord USud UWest UEst VNord VSud VWest VEst
 global x y
 
 %data matfile filename
-filename="data/Re/dataN60Re1000.mat";
+filename="dataN60Re1000.mat";
 
 warning off
 Lx = 1;    Ly = 1;                   % Dimensioni del dominio
@@ -101,12 +108,14 @@ G   = numgrid('S',Nx);     Lapg = -delsq(G);     Lapg = Lapg/hq;
 
 
 % condizione iniziale particle tracking
-Np=5;
+Np=5; % number of particles to track
 %flag for particle reinjection
 REINJECTION_FLAG=0;
 reIn_timeStep=500;
+%set initial position of lagrangian particles
 [xp,yp]=initialPoints(Np,Lx,Ly,"yline",0.5);
 
+%initialize particle arrays
 Xp=nan(Nt,Np);
 Yp=nan(Nt,Np);
 Up=nan(Nt,Np);
@@ -135,10 +144,13 @@ matObj.UWest=UWest; matObj.VWest=VWest;
 matObj.UNord=UNord; matObj.VNord=VNord;
 
 matObj.UFLAG=UFLAG;
+
 if UFLAG
 % set lid boundary velocity
-u_nord=setLidVelocity(time,0.05);
+lidFreq=0.2;
+u_nord=setLidVelocity(time,lidFreq);
 matObj.u_nord=u_nord;
+matObj.lidFreq=lidFreq;
 end
 
 %Unsteady loop
